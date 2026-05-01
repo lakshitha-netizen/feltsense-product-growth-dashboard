@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Product × Growth Dashboard — Q2 2026</title>
+<style>
+  :root {
+    color-scheme: light;
+    --bg: #000000;
+    --panel: #0d0d0d;
+    --panel-2: #141414;
+    --ink: #f5f5f5;
+    --ink-soft: #d4d4d4;
+    --muted: #8a8a8a;
+    --line: #1f1f1f;
+    --line-strong: #2a2a2a;
+
+    --card: #ffffff;
+    --card-2: #f8fafc;
+    --card-ink: #0f172a;
+    --card-ink-soft: #334155;
+    --card-muted: #64748b;
+    --card-line: #e2e8f0;
+
+    --accent: #ffffff;
+    --today: #3a2e08;
+    --today-ink: #fcd34d;
+    --weekend: #080808;
+    --blocker: #ef4444;
+    --blocker-bg: #fee2e2;
+
+    /* Project palette — 7 projects */
+    --p-gutcheck: #a78bfa;     --p-gutcheck-bg: #1d152e;
+    --p-draper: #818cf8;       --p-draper-bg: #1a1d3a;
+    --p-vc: #34d399;           --p-vc-bg: #0d2a22;
+    --p-hire: #fb7185;         --p-hire-bg: #2e1218;
+    --p-brand: #fbbf24;        --p-brand-bg: #2e2208;
+    --p-web: #f472b6;          --p-web-bg: #2e1322;
+    --p-infra: #22d3ee;        --p-infra-bg: #082530;
+
+    --status-todo: #475569;       --status-todo-bg: #f1f5f9;
+    --status-progress: #1d4ed8;   --status-progress-bg: #dbeafe;
+    --status-review: #b45309;     --status-review-bg: #fef3c7;
+    --status-done: #15803d;       --status-done-bg: #dcfce7;
+
+    /* lane colors */
+    --lane-product: #6a96ad;
+    --lane-growth: #e8a33d;
+    --lane-joint: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--ink); margin: 0; }
+  body {
+    font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif;
+    padding: 20px 22px 60px;
+  }
+  header.top {
+    display: flex; align-items: baseline; justify-content: space-between;
+    margin-bottom: 6px; flex-wrap: wrap; gap: 8px;
+  }
+  header.top h1 {
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em; margin: 0;
+    color: var(--ink);
+  }
+  .subhead { color: var(--muted); font-size: 13px; }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 6px 10px; margin: 10px 0 18px;
+    font-size: 12px; color: var(--muted);
+  }
+  .legend .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 8px; border-radius: 999px; background: var(--panel);
+    border: 1px solid var(--line);
+    color: var(--ink-soft);
+  }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+  .legend .swatch.dot { border-radius: 50%; }
+  .legend .lane-tag {
+    font-size: 10px; padding: 1px 5px; border-radius: 3px;
+    margin-left: 4px; letter-spacing: .04em; text-transform: uppercase;
+    background: var(--panel-2); color: var(--muted); border: 1px solid var(--line);
+  }
+  section.block {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 18px;
+  }
+  section.block h2 {
+    font-size: 15px; font-weight: 600; margin: 0 0 12px;
+    display: flex; align-items: center; gap: 8px;
+    color: var(--ink);
+  }
+  section.block h2 .count { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+  .stat {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--card-ink);
+  }
+  .stat .num { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; color: var(--card-ink); }
+  .stat.danger .num { color: #b91c1c; }
+  .stat.success .num { color: #15803d; }
+  .stat .lbl { font-size: 12px; color: var(--card-muted); margin-top: 2px; }
+
+  /* Calendar */
+  .months { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; }
+  @media (max-width: 1100px) { .months { grid-template-columns: 1fr; } }
+  .month { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--panel); }
+  .month .mhdr {
+    padding: 10px 12px; font-weight: 600; font-size: 13px;
+    background: var(--panel-2); border-bottom: 1px solid var(--line);
+    display: flex; align-items: center; justify-content: space-between;
+    color: var(--ink);
+  }
+  .month .mhdr .n { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .dow {
+    display: grid; grid-template-columns: repeat(7, 1fr);
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .dow div { padding: 6px 0; text-align: center; }
+  .grid { display: grid; grid-template-columns: repeat(7, 1fr); grid-auto-rows: minmax(78px, auto); }
+  .day {
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    padding: 4px 5px 6px;
+    min-height: 78px;
+    position: relative;
+    background: var(--panel);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .day.weekend { background: var(--weekend); }
+  .day.empty { background: #050505; }
+  .day .num { font-weight: 600; font-size: 11px; color: var(--ink); }
+  .day:nth-child(7n) { border-right: none; }
+  .events { display: flex; flex-direction: column; gap: 2px; margin-top: 3px; }
+  .ev {
+    font-size: 10px; line-height: 1.25;
+    padding: 2px 5px; border-radius: 4px;
+    background: var(--panel-2);
+    border-left: 3px solid #444;
+    color: var(--ink);
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  .ev.gutcheck { background: var(--p-gutcheck-bg); border-left-color: var(--p-gutcheck); color: #ddd6fe; }
+  .ev.draper   { background: var(--p-draper-bg);   border-left-color: var(--p-draper);   color: #c7d2fe; }
+  .ev.vc       { background: var(--p-vc-bg);       border-left-color: var(--p-vc);       color: #a7f3d0; }
+  .ev.hire     { background: var(--p-hire-bg);     border-left-color: var(--p-hire);     color: #fecdd3; }
+  .ev.brand    { background: var(--p-brand-bg);    border-left-color: var(--p-brand);    color: #fde68a; }
+  .ev.web      { background: var(--p-web-bg);      border-left-color: var(--p-web);      color: #fbcfe8; }
+  .ev.infra    { background: var(--p-infra-bg);    border-left-color: var(--p-infra);    color: #a5f3fc; }
+  .day.today { background: var(--today); }
+  .day.today .num { color: var(--today-ink); }
+
+  /* Projects */
+  .projects { display: flex; flex-direction: column; gap: 14px; }
+  .project {
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--panel);
+    overflow: hidden;
+  }
+  .project .phdr {
+    padding: 12px 14px;
+    display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel-2);
+  }
+  .project .phdr .dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .project .phdr .pname { font-weight: 600; font-size: 14px; color: var(--ink); }
+  .project .phdr .lane {
+    font-size: 9.5px; padding: 1px 6px; border-radius: 3px;
+    letter-spacing: .08em; text-transform: uppercase; font-weight: 600;
+    background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+  }
+  .project .phdr .lane.product { color: var(--lane-product); border-color: #6a96ad44; }
+  .project .phdr .lane.growth  { color: var(--lane-growth); border-color: #e8a33d44; }
+  .project .phdr .lane.joint   { color: var(--lane-joint); border-color: #a78bfa44; }
+  .project .phdr .pmeta { color: var(--muted); font-size: 12px; margin-left: auto; }
+  .kanban { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; background: var(--panel); }
+  @media (max-width: 1100px) { .kanban { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 700px)  { .kanban { grid-template-columns: 1fr; } }
+  .col {
+    padding: 12px 12px 14px;
+    border-right: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    min-height: 80px;
+    background: var(--panel);
+  }
+  .col:last-child { border-right: none; }
+  @media (max-width: 1100px) {
+    .col { border-right: 1px solid var(--line); }
+    .col:nth-child(2n) { border-right: none; }
+  }
+  @media (max-width: 700px) {
+    .col { border-right: none; }
+  }
+  .col .ctitle {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 600; margin-bottom: 8px;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .col .ctitle .pill {
+    display: inline-block; padding: 1px 7px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; letter-spacing: 0;
+    text-transform: none;
+  }
+  .pill.todo     { background: var(--status-todo-bg);     color: var(--status-todo); }
+  .pill.progress { background: var(--status-progress-bg); color: var(--status-progress); }
+  .pill.review   { background: var(--status-review-bg);   color: var(--status-review); }
+  .pill.done     { background: var(--status-done-bg);     color: var(--status-done); }
+
+  .task {
+    background: var(--card);
+    border: 1px solid var(--card-line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    font-size: 12.5px;
+    line-height: 1.35;
+    position: relative;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.4);
+    color: var(--card-ink);
+  }
+  .task.blocker {
+    border-color: var(--blocker);
+    box-shadow: inset 3px 0 0 var(--blocker), 0 1px 2px rgba(0,0,0,0.4);
+    background: linear-gradient(90deg, var(--blocker-bg) 0%, var(--card) 35%);
+  }
+  .task.done .ttitle span { text-decoration: line-through; color: var(--card-muted); }
+  .task.done { opacity: 0.85; background: var(--card-2); }
+  .task .ttitle { font-weight: 500; color: var(--card-ink); display: flex; align-items: flex-start; gap: 6px; }
+  .task .blocker-dot {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--blocker); flex-shrink: 0; margin-top: 5px;
+  }
+  .task .check {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: var(--status-done); flex-shrink: 0; margin-top: 5px;
+  }
+  .task .tmeta {
+    margin-top: 4px; font-size: 10.5px; color: var(--card-muted);
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  }
+  .task .section-tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    background: #f1f5f9; color: var(--card-ink-soft);
+    font-size: 10px; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .task .owner-tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    background: #dcfce7; color: #166534;
+    font-size: 10px; font-weight: 600;
+  }
+  .task .src-tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    background: #ede9fe; color: #5b21b6;
+    font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .task .src-tag.cu { background: #dbeafe; color: #1e40af; }
+  .task .due { font-weight: 500; }
+  .task .due.urgent { color: #b91c1c; }
+  .task .due.soon { color: #b45309; }
+  .empty-col { color: #3a3a3a; font-size: 12px; font-style: italic; }
+  footer.foot { color: var(--muted); font-size: 12px; text-align: center; margin-top: 16px; }
+  footer.foot a { color: var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>Product × Growth Dashboard — Q2 2026</h1>
+    <div class="subhead">Live tracker for both lanes, pulled from ClickUp + Linear. Mirrors the Notion DB under Business Ops.</div>
+  </div>
+  <div class="subhead" id="today-label">Today · Saturday, April 25, 2026</div>
+</header>
+
+<div class="legend">
+  <span class="chip"><span class="swatch" style="background:var(--p-gutcheck)"></span>GutCheck<span class="lane-tag">Joint</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-draper)"></span>Draper Investor Materials<span class="lane-tag">Growth</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-vc)"></span>VC Replication Video<span class="lane-tag">Growth</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-hire)"></span>Head of Growth Hire<span class="lane-tag">Growth</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-brand)"></span>Brand &amp; Logo<span class="lane-tag">Growth</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-web)"></span>Website Revamp<span class="lane-tag">Joint</span></span>
+  <span class="chip"><span class="swatch" style="background:var(--p-infra)"></span>Product Infra<span class="lane-tag">Product</span></span>
+  <span class="chip"><span class="swatch dot" style="background:var(--blocker)"></span>Blocker (red flag)</span>
+</div>
+
+<section class="block">
+  <div class="stats" id="stats"></div>
+</section>
+
+<section class="block">
+  <h2>Calendar — April / May / June 2026</h2>
+  <div class="months" id="months"></div>
+</section>
+
+<section class="block">
+  <h2>Projects <span class="count" id="proj-count"></span></h2>
+  <div class="projects" id="projects"></div>
+</section>
+
+<footer class="foot">
+  Pulled live from ClickUp + Linear · Notion mirror under <em>Business Ops Home → Product × Growth — Operating Tracker</em> · Refreshed Fri→Mon by Lakshitha
+</footer>
+
+<script>
+const TODAY = new Date(2026, 3, 25); // April 25, 2026
+
+const PROJECTS = [
+  {
+    id: 'gutcheck',
+    name: 'GutCheck',
+    color: 'gutcheck',
+    lane: 'joint',
+    meta: 'Playable May 1 · On stage May 5',
+    tasks: [
+      // Pivot + investor punchline (already shipped)
+      { t: 'Replication-attempt agent flow', section: 'Pivot', owner: 'Luis', source: 'lin', status: 'review', due: '2026-04-23' },
+      { t: 'Three-cost-layer diligence report (Compute + Human + GTM)', section: 'Investor Punchline', owner: 'Ben', source: 'lin', status: 'review', due: '2026-04-23' },
+
+      // Platform — the May 1 push
+      { t: 'GutCheck dashboard for data exploration', section: 'Platform', owner: 'Ben', source: 'lin', status: 'review', due: '2026-05-01' },
+      { t: 'Natural Language Query interface for dashboard', section: 'Platform', owner: 'Ben', source: 'lin', status: 'review', due: '2026-05-01' },
+      { t: 'Portfolio Dashboard rebuild — thesis surface, NLQ multi-turn', section: 'Platform', owner: 'Ben', source: 'lin', status: 'review' },
+
+      // Diligence by building (the architecture for "agents attempt to replicate")
+      { t: 'Auto-kick replication on every analysis + bounded score adjustment', section: 'Diligence by Building', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Cost calibration redesign — one source of truth per layer', section: 'Diligence by Building', owner: 'Ben', source: 'lin', status: 'review' },
+
+      // UI polish — the Draper sprint
+      { t: 'Refactor analysis page narrative — reorder, flatten, lift cost story', section: 'UI Polish', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Overview hero — always-on datums; valuation aggregate moves below', section: 'UI Polish', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Calibration card — verdict-first, plain English', section: 'UI Polish', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Calibration card — agent-finding headline + drill-down', section: 'UI Polish', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Add Completed/Failed tabs to History + Portfolio with retry', section: 'UI Polish', owner: 'Ben', source: 'lin', status: 'review' },
+
+      // Performance + tech debt
+      { t: 'Thesis SSR-prefetch — kill on-mount fetch flash', section: 'Performance', owner: 'Ben', source: 'lin', status: 'review' },
+      { t: 'Refactor — derive ReplicationAttempt state from props (drop useState mirror)', section: 'Tech Debt', owner: 'Ben', source: 'lin', status: 'todo' },
+
+      // Post-Draper
+      { t: 'External data enrichment (Crunchbase API)', section: 'Post-Draper', owner: 'Kevin', source: 'lin', status: 'todo' },
+    ]
+  },
+  {
+    id: 'draper',
+    name: 'Draper Investor Materials',
+    color: 'draper',
+    lane: 'growth',
+    meta: 'Event May 4–5 · Sign-off needed by May 4',
+    tasks: [
+      { t: 'Finish (2) Draper decks — Startup Demo + LP', section: 'Decks', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-05-01', blocker: true },
+      { t: 'Build interactive demo for Draper presentation', section: 'Demo', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-05-04' },
+      { t: 'Deliver final Draper materials package — Marik sign-off before use', section: 'Sign-off', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-05-04', blocker: true },
+      { t: 'Draper Day — Day 1 (LP room + investor room)', section: 'Event', owner: 'Marik', source: 'man', status: 'todo', due: '2026-05-04' },
+      { t: 'Draper Day — Day 2', section: 'Event', owner: 'Marik', source: 'man', status: 'todo', due: '2026-05-05' },
+      { t: 'Day-of engagement plan', section: 'Event', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-04' },
+      { t: 'Post-Draper retro + capture investor feedback', section: 'Post-Event', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-06' },
+    ]
+  },
+  {
+    id: 'vc',
+    name: 'VC Replication Video',
+    color: 'vc',
+    lane: 'growth',
+    meta: 'Launches May 12 · Flow Jam delivery May 8',
+    tasks: [
+      { t: 'Coordinate Flowjam team — animations + new shoot for additional footage', section: 'Pre-Production', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-05-01' },
+      { t: 'Conditional reshoot decision (based on Flow Jam call EOD Apr 25)', section: 'Pre-Production', owner: 'Matt', source: 'man', status: 'progress', due: '2026-04-29' },
+      { t: 'Flow Jam — full video edit + animations', section: 'Launch Readiness', owner: 'Matt', source: 'man', status: 'progress', due: '2026-05-08', blocker: true },
+      { t: 'Approve Flow Jam animation sequence', section: 'Launch Readiness', owner: 'Marik', source: 'man', status: 'todo', due: '2026-05-09' },
+      { t: 'Hero video final + approved by Marik (not a rough cut)', section: 'Launch Readiness', owner: 'Marik', source: 'man', status: 'todo', due: '2026-05-11', blocker: true },
+      { t: 'Video QA: pace, animations, color grading, audio', section: 'Launch Readiness', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-11', blocker: true },
+      { t: 'Report landing page on feltsense.com — URL tested', section: 'Launch Readiness', owner: 'Ben', source: 'man', status: 'todo', due: '2026-05-11' },
+      { t: 'All social copy approved by Marik', section: 'Launch Readiness', owner: 'Marik', source: 'man', status: 'todo', due: '2026-05-11' },
+      { t: 'VC firm @handles compiled — X + LinkedIn ready', section: 'Handles & Tagging', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-11', blocker: true },
+      { t: 'VC Replication video launch', section: 'Launch Day', owner: 'Team', source: 'man', status: 'todo', due: '2026-05-12' },
+      { t: 'Day-of engagement plan', section: 'Launch Day', owner: 'Team', source: 'man', status: 'todo', due: '2026-05-12' },
+      { t: 'Post-launch debrief', section: 'Post-Launch', owner: 'Team', source: 'man', status: 'todo', due: '2026-05-13' },
+    ]
+  },
+  {
+    id: 'hire',
+    name: 'Head of Growth Hire + Pipeline Foundation',
+    color: 'hire',
+    lane: 'growth',
+    meta: 'Offer by Apr 30 · 30-60-90 starts May 4',
+    tasks: [
+      { t: 'Complete interviews + extend Head of Growth offer by EoM', section: 'Hiring', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-30', blocker: true },
+      { t: 'Interviews — Julio Baragan, Rachel Furash R2, Dean Iwaoka', section: 'Hiring', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Review Rockstar growth/CoS candidates — refine LinkedIn outreach pool', section: 'Hiring', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Continue Growth advisor outreach', section: 'Hiring', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Build 30-60-90 day onboarding plan for HoG', section: 'Onboarding', owner: 'Matt', source: 'cu', status: 'todo', due: '2026-04-30' },
+      { t: 'Define & stand up unified CRM — confirm system with Matt', section: 'Pipeline Foundation', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Log + categorize all existing contacts into CRM', section: 'Pipeline Foundation', owner: 'Matt', source: 'cu', status: 'todo', due: '2026-04-30' },
+      { t: 'Set up experiment framework per founder — hypothesis, KPI, cadence', section: 'Pipeline Foundation', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Define paid ad framework + budget allocation per founder', section: 'Paid', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-05-04' },
+      { t: 'Launch first paid ad test — confirm tracking before scaling spend', section: 'Paid', owner: 'Matt', source: 'cu', status: 'todo', due: '2026-05-12' },
+    ]
+  },
+  {
+    id: 'brand',
+    name: 'Brand & Logo + Podcast Pipeline',
+    color: 'brand',
+    lane: 'growth',
+    meta: 'Logo sign-off by Apr 30 · Visual system by May 8',
+    tasks: [
+      { t: 'Get team and Marik sign-off on logo by end of April', section: 'Logo', owner: 'Matt', source: 'cu', status: 'todo', due: '2026-04-30', blocker: true },
+      { t: 'Brand identity — Project 2 (overall direction)', section: 'Brand', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-30' },
+      { t: 'Finalize visual identity guidelines once logo approved', section: 'Brand', owner: 'Matt', source: 'cu', status: 'todo', due: '2026-05-08' },
+      { t: 'Map podcast + interview pipeline — 5+ target shows and outlets', section: 'Podcast', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-04-29' },
+      { t: 'Secure first 2 podcast/interview appearances by June 16', section: 'Podcast', owner: 'Matt', source: 'cu', status: 'progress', due: '2026-06-16' },
+    ]
+  },
+  {
+    id: 'web',
+    name: 'Website Revamp',
+    color: 'web',
+    lane: 'joint',
+    meta: 'Lean on aesthetic v1 · Hands to Lakshitha for June newsletter',
+    tasks: [
+      { t: 'Revamp Feltsense homepage with Founder Showcase', section: 'Discovery', owner: 'Matt', source: 'lin', status: 'todo', due: '2026-05-27' },
+      { t: 'Source design references + define manifesto sections', section: 'Discovery', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-10' },
+      { t: 'First design draft + review with Marik', section: 'Design', owner: 'Matt', source: 'man', status: 'todo', due: '2026-05-20' },
+    ]
+  },
+  {
+    id: 'infra',
+    name: 'Product Infra & Cadence',
+    color: 'infra',
+    lane: 'product',
+    meta: 'Weekly comms cadence locked by Apr 30 · Roadmap by May 29',
+    tasks: [
+      { t: 'Define April founder activation plan — 4-5 demo products, define done + hand off to Growth', section: 'Activation', owner: 'Ben', source: 'cu', status: 'todo', due: '2026-04-30', blocker: true },
+      { t: 'Publish first weekly product status update — establish cadence', section: 'Cadence', owner: 'Ben', source: 'cu', status: 'progress', due: '2026-04-30' },
+      { t: 'Establish weekly product status comms — format + cadence locked', section: 'Cadence', owner: 'Ben', source: 'cu', status: 'progress', due: '2026-04-30' },
+      { t: 'Draft one-year high-level product roadmap', section: 'Roadmap', owner: 'Ben', source: 'cu', status: 'progress', due: '2026-05-29' },
+    ]
+  },
+];
+
+const CAL_EVENTS = [
+  // April
+  { date: '2026-04-29', label: 'Reshoot decision (Flow Jam call)', cls: 'vc' },
+  { date: '2026-04-29', label: 'CRM standup deadline', cls: 'hire' },
+  { date: '2026-04-30', label: 'Logo + brand sign-off', cls: 'brand' },
+  { date: '2026-04-30', label: 'HoG offer extended', cls: 'hire' },
+  { date: '2026-04-30', label: 'Founder activation plan', cls: 'infra' },
+  { date: '2026-04-30', label: 'First weekly product status', cls: 'infra' },
+
+  // May
+  { date: '2026-05-01', label: 'GutCheck playable (gate)', cls: 'gutcheck' },
+  { date: '2026-05-01', label: 'Draper decks finalized', cls: 'draper' },
+  { date: '2026-05-04', label: 'Draper Day — Day 1', cls: 'draper' },
+  { date: '2026-05-04', label: 'HoG 30-60-90 begins', cls: 'hire' },
+  { date: '2026-05-04', label: 'Paid ad framework set', cls: 'hire' },
+  { date: '2026-05-05', label: 'Draper Day — Day 2', cls: 'draper' },
+  { date: '2026-05-06', label: 'Post-Draper retro', cls: 'draper' },
+  { date: '2026-05-08', label: 'Flow Jam edit + animations done', cls: 'vc' },
+  { date: '2026-05-08', label: 'Visual identity guidelines finalized', cls: 'brand' },
+  { date: '2026-05-11', label: 'Hero video final + Marik approved', cls: 'vc' },
+  { date: '2026-05-12', label: 'VC Replication video launch', cls: 'vc' },
+  { date: '2026-05-12', label: 'First paid ad test live', cls: 'hire' },
+  { date: '2026-05-13', label: 'VC launch — debrief', cls: 'vc' },
+  { date: '2026-05-27', label: 'Website v1 draft due', cls: 'web' },
+  { date: '2026-05-29', label: 'One-year product roadmap drafted', cls: 'infra' },
+
+  // June
+  { date: '2026-06-16', label: 'First 2 podcast appearances secured', cls: 'brand' },
+];
+
+const STATUS_LABELS = { todo: 'To Do', progress: 'In Progress', review: 'In Review', done: 'Done' };
+const COL_ORDER = ['todo','progress','review','done'];
+
+const pad = n => String(n).padStart(2,'0');
+const fmtKey = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseKey = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
+function diffDays(a,b){ return Math.round((a - b) / 86400000); }
+function fmtDue(s) {
+  const d = parseKey(s);
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return `${months[d.getMonth()]} ${d.getDate()}`;
+}
+function urgency(s) {
+  const days = diffDays(parseKey(s), TODAY);
+  if (days < 0) return 'urgent';
+  if (days <= 7) return 'urgent';
+  if (days <= 21) return 'soon';
+  return '';
+}
+
+function renderStats() {
+  let total = 0, todo = 0, progress = 0, review = 0, done = 0, dueIn7 = 0, blockers = 0;
+  PROJECTS.forEach(p => p.tasks.forEach(t => {
+    total++;
+    if (t.status === 'todo') todo++;
+    else if (t.status === 'progress') progress++;
+    else if (t.status === 'review') review++;
+    else if (t.status === 'done') done++;
+    if (t.blocker) blockers++;
+    if (t.due && t.status !== 'done') {
+      const d = diffDays(parseKey(t.due), TODAY);
+      if (d >= 0 && d <= 7) dueIn7++;
+    }
+  }));
+  const items = [
+    { num: total, lbl: 'Total tasks' },
+    { num: blockers, lbl: 'Blockers (red)', danger: true },
+    { num: progress, lbl: 'In progress' },
+    { num: review, lbl: 'In review' },
+    { num: todo, lbl: 'To do' },
+    { num: done, lbl: 'Done', success: true },
+    { num: dueIn7, lbl: 'Due within 7 days' },
+    { num: PROJECTS.length, lbl: 'Active projects' },
+  ];
+  document.getElementById('stats').innerHTML = items.map(s =>
+    `<div class="stat ${s.danger?'danger':''} ${s.success?'success':''}"><div class="num">${s.num}</div><div class="lbl">${s.lbl}</div></div>`
+  ).join('');
+}
+
+function eventsByDate() {
+  const m = {};
+  CAL_EVENTS.forEach(e => { (m[e.date] ||= []).push(e); });
+  return m;
+}
+function renderMonth(year, monthIdx, eventMap) {
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const first = new Date(year, monthIdx, 1);
+  const startDow = first.getDay();
+  const daysInMonth = new Date(year, monthIdx+1, 0).getDate();
+
+  let cells = '';
+  for (let i = 0; i < startDow; i++) cells += `<div class="day empty"></div>`;
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(year, monthIdx, d);
+    const dow = date.getDay();
+    const key = fmtKey(date);
+    const isToday = key === fmtKey(TODAY);
+    const evs = eventMap[key] || [];
+    const cls = ['day'];
+    if (dow === 0 || dow === 6) cls.push('weekend');
+    if (isToday) cls.push('today');
+    const evsHtml = evs.map(e => `<div class="ev ${e.cls}" title="${e.label}">${e.label}</div>`).join('');
+    cells += `<div class="${cls.join(' ')}"><div class="num">${d}</div><div class="events">${evsHtml}</div></div>`;
+  }
+  const total = startDow + daysInMonth;
+  const trailing = (7 - (total % 7)) % 7;
+  for (let i = 0; i < trailing; i++) cells += `<div class="day empty"></div>`;
+
+  let count = 0;
+  Object.keys(eventMap).forEach(k => {
+    const d = parseKey(k);
+    if (d.getFullYear() === year && d.getMonth() === monthIdx) count += eventMap[k].length;
+  });
+
+  return `
+    <div class="month">
+      <div class="mhdr"><span>${monthNames[monthIdx]} ${year}</span><span class="n">${count} event${count===1?'':'s'}</span></div>
+      <div class="dow"><div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div></div>
+      <div class="grid">${cells}</div>
+    </div>
+  `;
+}
+function renderCalendar() {
+  const evMap = eventsByDate();
+  const html = [3,4,5].map(m => renderMonth(2026, m, evMap)).join('');
+  document.getElementById('months').innerHTML = html;
+}
+
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function renderProjects() {
+  const root = document.getElementById('projects');
+  let html = '';
+  PROJECTS.forEach(p => {
+    const buckets = { todo: [], progress: [], review: [], done: [] };
+    p.tasks.forEach(t => { (buckets[t.status] ||= []).push(t); });
+    Object.values(buckets).forEach(arr => arr.sort((a,b) => {
+      if ((a.blocker?1:0) !== (b.blocker?1:0)) return b.blocker?1:-1;
+      if (a.due && b.due) return a.due.localeCompare(b.due);
+      if (a.due) return -1;
+      if (b.due) return 1;
+      return 0;
+    }));
+
+    const colHtml = COL_ORDER.map(s => {
+      const tasks = buckets[s] || [];
+      const inner = tasks.length ? tasks.map(t => {
+        const dueCls = t.due ? urgency(t.due) : '';
+        const dueStr = t.due ? `<span class="due ${dueCls}">Due ${fmtDue(t.due)}</span>` : '';
+        const sect   = t.section ? `<span class="section-tag">${escapeHtml(t.section)}</span>` : '';
+        const owner  = t.owner ? `<span class="owner-tag">@${escapeHtml(t.owner)}</span>` : '';
+        const srcLabel = t.source === 'lin' ? 'Linear' : t.source === 'cu' ? 'ClickUp' : '';
+        const srcCls = t.source === 'cu' ? 'src-tag cu' : 'src-tag';
+        const src    = srcLabel ? `<span class="${srcCls}">${srcLabel}</span>` : '';
+        const metaParts = [sect, owner, src, dueStr].filter(Boolean);
+        const meta   = metaParts.length ? `<div class="tmeta">${metaParts.join('')}</div>` : '';
+        let dot = '';
+        if (t.blocker) dot = `<span class="blocker-dot" title="Blocker"></span>`;
+        else if (t.status === 'done') dot = `<span class="check" title="Done"></span>`;
+        let cls = 'task';
+        if (t.blocker) cls += ' blocker';
+        if (t.status === 'done') cls += ' done';
+        return `<div class="${cls}"><div class="ttitle">${dot}<span>${escapeHtml(t.t)}</span></div>${meta}</div>`;
+      }).join('') : `<div class="empty-col">Nothing here</div>`;
+      return `<div class="col"><div class="ctitle"><span class="pill ${s}">${STATUS_LABELS[s]}</span><span>${tasks.length}</span></div>${inner}</div>`;
+    }).join('');
+
+    html += `
+      <div class="project">
+        <div class="phdr">
+          <span class="dot" style="background: var(--p-${p.color})"></span>
+          <span class="pname">${escapeHtml(p.name)}</span>
+          <span class="lane ${p.lane}">${p.lane}</span>
+          <span class="pmeta">${escapeHtml(p.meta)}</span>
+        </div>
+        <div class="kanban">${colHtml}</div>
+      </div>
+    `;
+  });
+  root.innerHTML = html;
+  document.getElementById('proj-count').textContent = `(${PROJECTS.length})`;
+}
+
+function renderToday() {
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const t = TODAY;
+  document.getElementById('today-label').textContent =
+    `Today · ${days[t.getDay()]}, ${months[t.getMonth()]} ${t.getDate()}, ${t.getFullYear()}`;
+}
+
+renderToday();
+renderStats();
+renderCalendar();
+renderProjects();
+</script>
+
+</body>
+</html>
